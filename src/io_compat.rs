@@ -16,6 +16,26 @@ impl Write for &mut [u8] {
     }
 }
 
+#[cfg(feature = "heapless")]
+impl<N: heapless::ArrayLength<u8>> Write for heapless::Vec<u8, N> {
+    fn write(&mut self, data: &[u8]) -> Result<usize> {
+        let remaining_capacity = self.capacity() - self.len();
+        let amt = core::cmp::min(data.len(), remaining_capacity);
+        self.extend_from_slice(&data[..amt]).unwrap();
+        Ok(amt)
+    }
+}
+
+#[cfg(feature = "heapless")]
+impl<'a, N: heapless::ArrayLength<u8>> Write for &'a mut heapless::Vec<u8, N> {
+    fn write(&mut self, data: &[u8]) -> Result<usize> {
+        let remaining_capacity = self.capacity() - self.len();
+        let amt = core::cmp::min(data.len(), remaining_capacity);
+        self.extend_from_slice(&data[..amt]).unwrap();
+        Ok(amt)
+    }
+}
+
 pub enum SeekFrom {
     Start(u64),
     Current(i64),
